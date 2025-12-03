@@ -59,12 +59,7 @@ jobs:
         uses: sedzisz/semantic-version-action@v1
         with:
           type: label
-          map: |
-            {
-              "major": ["breaking"],
-              "minor": ["feature"],
-              "patch": ["fix", "bug", "docs"]
-            }
+          map: '{"major":["breaking"],"minor":["feature"],"patch":["fix","bug","docs"]}'
 
       - name: Print results
         run: |
