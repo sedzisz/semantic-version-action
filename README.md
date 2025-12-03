@@ -56,7 +56,7 @@ jobs:
 
       - name: Determine next version
         id: version
-        uses: sedzisz/semantic-version-action@v1
+        uses: sedzisz/semantic-version-action@v1 # docker://ghcr.io/sedzisz/semantic-version-action:latest
         with:
           type: label
           map: '{"major":["breaking"],"minor":["feature"],"patch":["fix","bug","docs"]}'
