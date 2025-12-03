@@ -13,8 +13,7 @@ inputs:
   map:
     description: 'JSON mapping: which tokens map to major/minor/patch'
     required: true
-    default: |
-      {"major":["breaking"],"minor":["feature"],"patch":["fix","bug","docs"]}
+    default: '{"major":["breaking"],"minor":["feature"],"patch":["fix","bug","docs"]}'
 
 outputs:
   version:
@@ -27,6 +26,3 @@ outputs:
 runs:
   using: "docker"
   image: "Dockerfile"
-  env:
-    INPUT_TYPE: ${{ inputs.type }}
-    INPUT_MAP: ${{ inputs.map }}

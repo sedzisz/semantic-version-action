@@ -2,13 +2,12 @@
 set -euo pipefail
 
 # entrypoint.sh
-# Works with:
-#  - positional args: $1 -> type, $2 -> map (repo action usage)
-#  - INPUT_* env vars: INPUT_TYPE, INPUT_MAP (docker:// usage)
+# GitHub Actions automatically converts inputs to INPUT_* environment variables
+# For example: input "type" becomes INPUT_TYPE, input "map" becomes INPUT_MAP
 
-# Resolve inputs: prefer positional args, fallback to INPUT_ envs, then defaults
-TYPE="${1:-${INPUT_TYPE:-label}}"
-MAP="${2:-${INPUT_MAP:-}}"
+# Read from environment variables only (no positional args for Docker actions)
+TYPE="${INPUT_TYPE:-label}"
+MAP="${INPUT_MAP:-}"
 
 # Paths
 WORKDIR="/github/workspace"
@@ -164,13 +163,23 @@ write_output() {
 log "Semantic version action started. mode=${TYPE}"
 
 # DEBUG: Show what was received
-log "DEBUG: Positional args: \$1='${1:-}' \$2='${2:-}'"
-log "DEBUG: ENV vars: INPUT_TYPE='${INPUT_TYPE:-}' INPUT_MAP='${INPUT_MAP:-}'"
+log "DEBUG: INPUT_TYPE='${INPUT_TYPE:-}' INPUT_MAP='${INPUT_MAP:-}'"
 log "DEBUG: Resolved TYPE='${TYPE}' MAP length=${#MAP}"
 
-# Normalize MAP: remove newlines, extra spaces, and trim
-# This handles multi-line YAML strings properly
-MAP=$(echo "$MAP" | tr -d '\n\r' | sed 's/[[:space:]]\+/ /g' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+# Normalize MAP: remove newlines, tabs, extra spaces, and trim
+# This handles multi-line YAML strings (with |) properly
+# Step 1: Remove all newlines and carriage returns
+MAP=$(echo "$MAP" | tr -d '\n\r')
+# Step 2: Remove all tabs
+MAP=$(echo "$MAP" | tr -d '\t')
+# Step 3: Collapse multiple spaces into single space
+MAP=$(echo "$MAP" | sed 's/[[:space:]]\{2,\}/ /g')
+# Step 4: Remove spaces after { [ , :
+MAP=$(echo "$MAP" | sed 's/\([{[\[:,]\)[[:space:]]\+/\1/g')
+# Step 5: Remove spaces before } ] ,
+MAP=$(echo "$MAP" | sed 's/[[:space:]]\+\([}\],]\)/\1/g')
+# Step 6: Trim leading/trailing spaces
+MAP=$(echo "$MAP" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
 log "DEBUG: Normalized MAP='${MAP}'"
 
