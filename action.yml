@@ -1,0 +1,32 @@
+name: "Semantic Version Action"
+description: "Calculate the next semantic version based on commit/branch/labels"
+author: "Zdzisław Sędek"
+branding:
+  icon: "tag"
+  color: "blue"
+
+inputs:
+  type:
+    description: 'Mode for detecting change type: "commit", "branch", "label"'
+    required: true
+    default: "label"
+  map:
+    description: 'JSON mapping: which tokens map to major/minor/patch'
+    required: true
+    default: |
+      {"major":["breaking"],"minor":["feature"],"patch":["fix","bug","docs"]}
+
+outputs:
+  version:
+    description: 'Computed version, e.g. v1.2.3 (empty if none)'
+  release_needed:
+    description: 'true if new release is required'
+  release_id:
+    description: 'Release id without leading v, e.g. 1.2.3'
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  args:
+    - ${{ inputs.type }}
+    - ${{ inputs.map }}
