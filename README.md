@@ -71,3 +71,4 @@ jobs:
           echo "Version: ${{ steps.version.outputs.version }}"
           echo "Release needed: ${{ steps.version.outputs.release_needed }}"
           echo "Release ID: ${{ steps.version.outputs.release_id }}"
+```
