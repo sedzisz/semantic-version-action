@@ -27,6 +27,6 @@ outputs:
 runs:
   using: "docker"
   image: "Dockerfile"
-  args:
-    - ${{ inputs.type }}
-    - ${{ inputs.map }}
+  env:
+    INPUT_TYPE: ${{ inputs.type }}
+    INPUT_MAP: ${{ inputs.map }}
