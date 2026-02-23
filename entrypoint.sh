@@ -151,7 +151,7 @@ write_output() {
   local name="$1"
   local value="$2"
   # if GITHUB_OUTPUT file exists/usable append there, otherwise print to stdout
-  if [ -n "${GITHUB_OUTPUT:-}" ] && [ -w "$(dirname "$GITHUB_OUTPUT")" ] 2>/dev/null; then
+  if [ -n "${GITHUB_OUTPUT:-}" ] && [ -w "$GITHUB_OUTPUT" ]; then
     echo "${name}=${value}" >> "$GITHUB_OUTPUT"
   else
     echo "GITHUB_OUTPUT not set or not writable; $name=$value"
