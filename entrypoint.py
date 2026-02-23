@@ -66,7 +66,7 @@ def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
 
 def get_last_version() -> str:
     for pattern in ("v[0-9]*.[0-9]*.[0-9]*", "[0-9]*.[0-9]*.[0-9]*"):
-        result = run(["git", "tag", "--list", "--sort=-creatordate", pattern])
+        result = run(["git", "tag", "--list", "--sort=-version:refname", pattern])
         tag = result.stdout.strip().splitlines()[0] if result.stdout.strip() else ""
         if tag:
             return tag.lstrip("v")
@@ -76,6 +76,9 @@ def get_last_version() -> str:
 def next_version(bump: str, version: str) -> str:
     version = version.lstrip("v")
     parts = version.split(".")
+    if len(parts) != 3:
+        log.warning("Unexpected version format '%s', falling back to 0.0.0", version)
+        parts = ["0", "0", "0"]
     major, minor, patch = int(parts[0]), int(parts[1]), int(parts[2])
     bump = bump.lower()
     if bump == "major":
@@ -99,10 +102,8 @@ def get_type_from_commit_prefix() -> str | None:
     if not msg:
         log.warning("No commit message found.")
         return None
-    # [type] prefix
     if msg.startswith("[") and "]" in msg:
         return msg[1:msg.index("]")]
-    # type: prefix
     if ":" in msg:
         prefix = msg.split(":")[0]
         if prefix:
@@ -151,8 +152,9 @@ def get_type_from_labels() -> str | None:
 # ---------------------------------------------------------------------------
 
 def map_to_bump(token: str, mapping: dict) -> str:
+    token_lower = token.lower()
     for bump_level, tokens in mapping.items():
-        if token in tokens:
+        if token_lower in [t.lower() for t in tokens]:
             return bump_level
     return "none"
 
@@ -165,7 +167,6 @@ def main() -> int:
     log.info("Semantic version action started. mode=%s", TYPE)
     log.debug("INPUT_TYPE='%s' INPUT_MAP='%s'", os.environ.get("INPUT_TYPE", ""), MAP_RAW)
 
-    # Parse MAP
     map_str = MAP_RAW.replace("\n", "").replace("\r", "").replace("\t", "").strip()
 
     if not map_str or map_str == "{}":
@@ -184,7 +185,6 @@ def main() -> int:
 
     log.debug("Parsed MAP: %s", mapping)
 
-    # Detect token
     detectors = {
         "commit": get_type_from_commit_prefix,
         "branch": get_type_from_branch_prefix,
